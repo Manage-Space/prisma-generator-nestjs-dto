@@ -273,6 +273,8 @@ export const run = ({
         return [connectDto, createDto, updateDto, plainDto];
       case 'entity':
         return [entity];
+      case 'custom':
+        return [connectDto, createDto, updateDto, entity];
       default:
         throw new Error(`Unknown 'generateFileTypes' value.`);
     }
