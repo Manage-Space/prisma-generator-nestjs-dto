@@ -276,7 +276,9 @@ export const run = ({
       case 'custom':
         return [connectDto, createDto, updateDto, entity];
       default:
-        throw new Error(`Unknown 'generateFileTypes' value. all, dto, entity and custom are valid options`);
+        throw new Error(
+          `Unknown 'generateFileTypes' value. all, dto, entity and custom are valid options`,
+        );
     }
   });
 

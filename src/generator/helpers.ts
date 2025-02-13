@@ -342,7 +342,10 @@ export const generateRelationInput = ({
         noEncapsulation: true,
       });
       if (field.isList)
-        decorators.apiProperties.push({ name: 'isArray', value: 'true' });
+        decorators.apiProperties.push({
+          name: 'isArray',
+          value: 'true',
+        });
     }
 
     relationInputClassProps.push({
@@ -400,7 +403,10 @@ export const generateRelationInput = ({
         noEncapsulation: true,
       });
       if (field.isList)
-        decorators.apiProperties.push({ name: 'isArray', value: 'true' });
+        decorators.apiProperties.push({
+          name: 'isArray',
+          value: 'true',
+        });
     }
 
     relationInputClassProps.push({
@@ -703,7 +709,10 @@ export const zipImportStatementParams = (
       if (!existingItem) {
         return { ...result, [from]: item };
       }
-      return { ...result, [from]: mergeImportStatements(existingItem, item) };
+      return {
+        ...result,
+        [from]: mergeImportStatements(existingItem, item),
+      };
     },
     {} as Record<ImportStatementParams['from'], ImportStatementParams>,
   );

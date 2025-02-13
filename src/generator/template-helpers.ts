@@ -253,12 +253,14 @@ export const makeHelpers = ({
       '\n',
     )}`;
 
+  // AB added decorateClassValidators --------------------------------------------------
   const fieldToEntityProp = (field: ParsedField) =>
-    `${decorateApiProperty(field)}${field.name}${unless(
+    `${decorateApiProperty(field)}${decorateClassValidators(field)}${field.name}${unless(
       field.isRequired,
       '?',
       when(definiteAssignmentAssertion, '!'),
     )}: ${fieldType(field)} ${when(field.isNullable, ' | null')};`;
+  // -----------------------------------------------------------------------------------
 
   const fieldsToEntityProps = (fields: ParsedField[]) =>
     `${each(fields, (field) => fieldToEntityProp(field), '\n')}`;

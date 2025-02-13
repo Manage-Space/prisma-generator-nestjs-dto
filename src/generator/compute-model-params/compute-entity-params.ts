@@ -15,6 +15,7 @@ import {
   isType,
 } from '../field-classifiers';
 import {
+  concatUniqueIntoArray,
   getRelationScalars,
   getRelativePath,
   makeCustomImports,
@@ -30,12 +31,14 @@ import type {
   ImportStatementParams,
   ParsedField,
   IDecorators,
+  IClassValidator,
 } from '../types';
 import type { TemplateHelpers } from '../template-helpers';
 import {
   makeImportsFromNestjsSwagger,
   parseApiProperty,
 } from '../api-decorator';
+import { makeImportsFromClassValidator, parseClassValidators } from '../class-validator';
 
 interface ComputeEntityParamsParam {
   model: Model;
@@ -53,12 +56,15 @@ export const computeEntityParams = ({
   const relationScalarFields = getRelationScalars(model.fields);
   const relationScalarFieldNames = Object.keys(relationScalarFields);
 
+  const classValidators: IClassValidator[] = [];
+
   const fields = model.fields.reduce((result, field) => {
     const { name } = field;
     const overrides: Partial<DMMF.Field> = {
       isRequired: true,
       isNullable: !field.isRequired,
     };
+    
     const decorators: IDecorators = {};
 
     if (isAnnotatedWith(field, DTO_ENTITY_HIDDEN)) return result;
@@ -201,6 +207,33 @@ export const computeEntityParams = ({
       }
     }
 
+    // AB
+    // --------------------------------------------------------------------
+    const rawCastType = [DTO_OVERRIDE_TYPE, DTO_CAST_TYPE].reduce(
+      (cast: string | false, annotation) => {
+        if (cast) return cast;
+        return isAnnotatedWith(field, annotation, {
+          returnAnnotationParameters: true,
+        });
+      },
+      false,
+    );
+    const castType = rawCastType ? rawCastType.split(',')[0] : undefined;
+
+    decorators.classValidators = parseClassValidators(
+      { ...field },
+      // { ...field, isRequired },
+      castType, //  || preAndPostfixedName,
+    );
+
+    // AB
+    concatUniqueIntoArray(
+      decorators.classValidators,
+      classValidators,
+      'name',
+    );    
+    // --------------------------------------------------------------------
+
     if (templateHelpers.config.noDependencies) {
       if (field.type === 'Json') field.type = 'Object';
       else if (field.type === 'Decimal') field.type = 'String';
@@ -230,6 +263,9 @@ export const computeEntityParams = ({
     fields,
     apiExtraModels,
   );
+
+  // AB
+  const importClassValidator = makeImportsFromClassValidator(classValidators);
   const customImports = makeCustomImports(fields);
 
   return {
@@ -238,6 +274,8 @@ export const computeEntityParams = ({
     imports: zipImportStatementParams([
       ...importPrismaClient,
       ...importNestjsSwagger,
+      // AB
+      ...importClassValidator,
       ...customImports,
       ...imports,
     ]),
